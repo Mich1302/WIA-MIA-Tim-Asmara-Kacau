@@ -9,3 +9,7 @@ CSS
 JavaScript
 Next JS
 Laravel
+
+cara menjalankan program : dapat langsung di run program di text editor karena kita menggunakan VS CODE yang menggunakan extension live server
+
+
