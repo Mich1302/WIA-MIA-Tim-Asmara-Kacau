@@ -1,7 +1,7 @@
 const AUTH = {
     salt: 'pintar-salt-v1',
     admins: [
-        { nip: '198204152006041003', hash: '613e97f015b8f9c514d42b0e041d369357ef8729300a3ada31acdbe9744610ac' }
+        { nip: '198204152006041003', hash: '905de95d4ce53ee46cbe27fd4f8f5e5fb53656fbd7431499b2beee415895dbb2' }
     ],
     maxTries: 5,          // salah sandi berturut-turut sebelum dikunci
     lockMs: 60 * 1000     // lama kunci
