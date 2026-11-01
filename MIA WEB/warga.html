@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PINTAR | Portal Warga</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="#" class="brand" onclick="switchView('beranda'); return false;" aria-label="PINTAR, ke beranda">
+                <img class="brand-logo" src="PINTAR_LOGO.png" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'brand-fallback', textContent: 'P'}))">
+                <span class="brand-name">PINTAR</span>
+            </a>
+
+            <nav aria-label="Menu portal warga">
+                <ul class="nav-menu">
+                    <li><a href="#" class="nav-link active" data-target="beranda" onclick="switchView('beranda'); return false;"><i class="ph ph-squares-four"></i><span>Beranda</span></a></li>
+                    <li><a href="#" class="nav-link" data-target="layanan" onclick="switchView('layanan'); return false;"><i class="ph ph-megaphone"></i><span>Buat Pengaduan</span></a></li>
+                    <li><a href="#" class="nav-link" data-target="lacak" onclick="switchView('lacak'); return false;"><i class="ph ph-ticket"></i><span>Lacak Tiket</span></a></li>
+                </ul>
+            </nav>
+
+            <div class="user-profile">
+                <div class="avatar" id="userAvatarText">W</div>
+                <div class="user-meta">
+                    <strong id="userNameDisplay">Warga</strong>
+                    <small id="userNikDisplay"></small>
+                </div>
+                <button class="logout" onclick="logout()" aria-label="Keluar"><i class="ph ph-sign-out"></i><span>Keluar</span></button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- BERANDA -->
+        <section id="view-beranda" class="view-section active">
+            <div class="container">
+                <div class="notice" id="notice" role="status" hidden></div>
+
+                <div class="greet">
+                    <div>
+                        <h1>Halo, <span id="welcomeName">Warga</span>.</h1>
+                        <p class="greet-sum" id="homeSummary"></p>
+                    </div>
+                    <button class="btn btn-primary" onclick="switchView('layanan')">Buat pengaduan <i class="ph ph-arrow-right"></i></button>
+                </div>
+
+                <div id="recentTicket" aria-live="polite"></div>
+
+                <div class="section-head">
+                    <div><h2>Buat laporan baru</h2></div>
+                </div>
+                <div class="launch-grid" id="homeServices"></div>
+
+                <div class="section-head">
+                    <div><h2>Tiket saya</h2></div>
+                    <a href="#" class="link" onclick="switchView('lacak'); return false;">Lihat semua</a>
+                </div>
+                <div class="panel-list" id="homeTickets"></div>
+            </div>
+        </section>
+
+        <!-- LAYANAN -->
+        <section id="view-layanan" class="view-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Pilih jenis laporan</h2>
+                    <p>Isi formulir singkat, lalu kamu mendapat nomor tiket untuk dipantau.</p>
+                </div>
+                <div class="tk-grid" id="serviceGrid"></div>
+            </div>
+        </section>
+
+        <!-- LACAK TIKET -->
+        <section id="view-lacak" class="view-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Lacak status tiket</h2>
+                    <p>Masukkan nomor tiket atau pilih dari daftar tiketmu.</p>
+                </div>
+                <div class="track-grid">
+                    <div class="panel">
+                        <form class="search-row" onsubmit="trackTicket(); return false;">
+                            <label for="ticketInput" class="sr">Nomor tiket</label>
+                            <input type="text" id="ticketInput" class="form-control" placeholder="Contoh: PGD-88210" autocomplete="off">
+                            <button class="btn btn-primary" type="submit">Cari</button>
+                        </form>
+                        <p class="field-error" id="trackError" role="alert"></p>
+                        <h3 class="mini-title">Tiket saya</h3>
+                        <div id="myTickets"></div>
+                    </div>
+                    <div>
+                        <div class="empty-state" id="trackEmpty"><div class="empty-ic"><i class="ph ph-ticket"></i></div><h3>Belum ada tiket dipilih</h3><p>Rincian, foto, dan progres penanganan tampil di sini.</p></div>
+                        <div class="result" id="trackResult" hidden></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="foot">PINTAR, portal layanan publik. Seluruh data di versi ini adalah data contoh.</footer>
+
+    <!-- MODAL FORM -->
+    <div class="modal-overlay" id="formModal" onclick="if (event.target === this) closeModal()">
+        <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <h3 id="modalTitle">Formulir Pengajuan</h3>
+                <button class="close-btn" onclick="closeModal()" aria-label="Tutup"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="publicServiceForm" onsubmit="handleFormSubmit(event)" novalidate>
+                <input type="hidden" id="formPrefix" value="PGD">
+                <div class="two-fields">
+                    <div class="form-group"><label for="formName">Nama pemohon</label><input type="text" id="formName" class="form-control" readonly></div>
+                    <div class="form-group"><label for="formNik">NIK</label><input type="text" id="formNik" class="form-control" readonly></div>
+                </div>
+                <div class="form-group">
+                    <label for="formLocation">Lokasi / alamat kejadian</label>
+                    <input type="text" id="formLocation" class="form-control" placeholder="Contoh: Jl. Sudirman No. 45, depan minimarket">
+                    <p class="field-error" id="errLocation"></p>
+                </div>
+                <div class="form-group">
+                    <label for="formDesc">Detail laporan</label>
+                    <textarea id="formDesc" class="form-control" rows="3" placeholder="Jelaskan apa yang terjadi dan sejak kapan"></textarea>
+                    <p class="field-error" id="errDesc"></p>
+                </div>
+                <div class="form-group">
+                    <label for="formFile">Foto bukti (opsional)</label>
+                    <label class="drop" for="formFile">
+                        <i class="ph ph-camera"></i>
+                        <span id="dropText">Ketuk untuk memilih foto JPG/PNG, maksimal 4 MB</span>
+                        <img id="dropPreview" alt="Pratinjau foto" hidden>
+                    </label>
+                    <input type="file" id="formFile" class="sr" accept="image/png,image/jpeg" onchange="updateDrop()">
+                    <p class="field-error" id="errFile"></p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Kirim pengajuan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+    <!-- CHATBOT -->
+    <button class="chatbot-toggle" onclick="toggleChat()" aria-label="Buka asisten PINTAR"><i class="ph ph-chat-circle-text"></i></button>
+    <div class="chatbot-box" id="chatBox">
+        <div class="chat-header">
+            <div><strong>Asisten PINTAR</strong><small>Jawaban otomatis, bukan petugas</small></div>
+            <button class="close-btn light" onclick="toggleChat()" aria-label="Tutup chat"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="chat-body" id="chatBody" role="log" aria-live="polite">
+            <div class="chat-msg bot" id="botGreeting">Halo! Ada yang bisa saya bantu?</div>
+        </div>
+        <div class="chat-quick" id="chatQuick"></div>
+        <div class="chat-footer">
+            <input type="text" id="chatInput" class="form-control" placeholder="Ketik pertanyaan..." aria-label="Pertanyaan" onkeypress="handleChatKey(event)">
+            <button class="btn btn-primary" onclick="sendChatMessage()" aria-label="Kirim"><i class="ph ph-paper-plane-tilt"></i></button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        window.onload = function () { initCitizenSession(); };
+    </script>
+</body>
+</html>

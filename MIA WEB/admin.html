@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PINTAR | Panel Petugas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="adm-bar">
+        <div class="adm-bar-inner">
+            <div class="adm-id">
+                <img class="brand-logo" src="PINTAR_LOGO.png" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'brand-fallback', textContent: 'P'}))">
+                <div>
+                    <div class="adm-title">PINTAR, panel petugas</div>
+                    <div class="adm-sub" id="adminDept">Petugas</div>
+                </div>
+            </div>
+            <div class="adm-actions-top">
+                <button class="btn btn-secondary btn-sm" onclick="loadAdminData()"><i class="ph ph-arrows-clockwise"></i> Segarkan</button>
+                <button class="btn btn-secondary btn-sm" onclick="openClearModal('done')">Hapus yang selesai</button>
+                <button class="btn btn-secondary btn-sm" onclick="openClearModal('all')">Hapus semua</button>
+                <button class="btn btn-primary btn-sm" onclick="logout()"><i class="ph ph-sign-out"></i> Keluar</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="adm-main">
+        <div class="adm-head">
+            <h1 class="adm-h1">Antrean tiket</h1>
+            <p class="adm-lead" id="admLead"></p>
+        </div>
+
+        <div class="adm-filters" id="admFilters" role="group" aria-label="Filter status">
+            <button type="button" class="adm-filter active" data-filter="all" onclick="setAdminFilter('all')">Semua <span class="cnt" id="cntAll">0</span></button>
+            <button type="button" class="adm-filter" data-filter="Baru Diterima" onclick="setAdminFilter('Baru Diterima')">Baru <span class="cnt" id="cntNew">0</span></button>
+            <button type="button" class="adm-filter" data-filter="Sedang Diproses" onclick="setAdminFilter('Sedang Diproses')">Diproses <span class="cnt" id="cntRun">0</span></button>
+            <button type="button" class="adm-filter" data-filter="Selesai" onclick="setAdminFilter('Selesai')">Selesai <span class="cnt" id="cntDone">0</span></button>
+            <button type="button" class="adm-filter" data-filter="Ditolak" onclick="setAdminFilter('Ditolak')">Ditolak <span class="cnt" id="cntBad">0</span></button>
+        </div>
+
+        <div class="adm-table-wrap">
+            <table class="adm-table">
+                <thead>
+                    <tr>
+                        <th>Tiket</th>
+                        <th>Pelapor</th>
+                        <th>Laporan</th>
+                        <th>Foto</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="adminTableBody"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+    <!-- Preview foto -->
+    <div class="modal-overlay" id="imagePreviewModal" onclick="if (event.target === this) closeImageModal()">
+        <div class="modal-box narrow">
+            <div class="modal-header">
+                <h3>Foto bukti</h3>
+                <button class="close-btn" onclick="closeImageModal()" aria-label="Tutup"><i class="ph ph-x"></i></button>
+            </div>
+            <img id="modalPreviewImg" class="preview-img" src="" alt="Foto bukti">
+        </div>
+    </div>
+
+    <!-- Catatan status (Selesai / Tolak): catatan ini tampil di halaman warga -->
+    <div class="modal-overlay" id="statusModal">
+        <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="statusModalTitle">
+            <div class="modal-header">
+                <h3 id="statusModalTitle">Perbarui status</h3>
+                <button class="close-btn" onclick="closeStatusModal()" aria-label="Tutup"><i class="ph ph-x"></i></button>
+            </div>
+            <form onsubmit="confirmStatus(event)" novalidate>
+                <div class="form-group">
+                    <label for="statusNote" id="statusNoteLabel">Catatan</label>
+                    <textarea id="statusNote" class="form-control" rows="3" placeholder="Contoh: Lampu jalan sudah diganti pada 25 Oktober."></textarea>
+                </div>
+                <div class="form-group" id="statusFileWrap">
+                    <label for="statusFile">Foto hasil penanganan (opsional)</label>
+                    <input type="file" id="statusFile" class="form-control" accept="image/png,image/jpeg">
+                </div>
+                <p class="field-error" id="statusError" role="alert"></p>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeStatusModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan &amp; kirim ke warga</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Konfirmasi hapus -->
+    <div class="modal-overlay" id="clearModal">
+        <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="clearTitle">
+            <div class="modal-header">
+                <h3 id="clearTitle">Hapus pengajuan</h3>
+                <button class="close-btn" onclick="closeClearModal()" aria-label="Tutup"><i class="ph ph-x"></i></button>
+            </div>
+            <form onsubmit="confirmClear(event)" novalidate>
+                <p id="clearInfo" class="clear-info"></p>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="downloadBackup()" style="margin-bottom: 16px;"><i class="ph ph-download-simple"></i> Unduh cadangan (JSON) dulu</button>
+                <div class="form-group" id="clearConfirmWrap">
+                    <label for="clearConfirm">Ketik HAPUS untuk mengonfirmasi</label>
+                    <input type="text" id="clearConfirm" class="form-control" autocomplete="off">
+                </div>
+                <p class="field-error" id="clearError" role="alert"></p>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeClearModal()">Batal</button>
+                    <button type="submit" class="btn btn-danger">Hapus permanen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        window.onload = function () { initAdminSession(); };
+    </script>
+</body>
+</html>
