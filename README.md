@@ -10,6 +10,6 @@ JavaScript
 Next JS
 Laravel
 
-cara menjalankan program : dapat langsung di run program di text editor karena kita menggunakan VS CODE yang menggunakan extension live server
+Cara menjalankan program : dapat langsung di run program di text editor karena kita menggunakan VS CODE yang menggunakan extension live server
 
-
+Progress saat ini : sudah ada landing page dan form untuk Pengaduan Infrastruktur, Perizinan & Surat, serta Verifikasi Bansos. Serta sudah terssedia chatbot untuk bertanya dan halaman cek status tiket pengajuan. Kemudian sudah terdapat halaman login petugas Admin yang untuk mengecek, menindak lanjuti, dan memverifikasi laporan masyarakat.
