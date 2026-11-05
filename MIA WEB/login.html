@@ -32,7 +32,6 @@
     </header>
 
     <main>
-        <!-- HERO -->
         <section class="l-hero" id="beranda">
             <div class="l-hero-bg">
                 <!-- hero.svg = cadangan bila hero.jpg belum ada. Ganti gambar hero cukup dengan menimpa hero.jpg. -->
@@ -40,7 +39,7 @@
                 <img src="PINTAR_BG.jpg" alt="PINTAR, Pusat Informasi dan Tracking Layanan Rakyat. Maskot PINTAR melambai di depan gedung-gedung kota." onerror="this.remove(); document.getElementById('beranda').classList.add('no-photo')">
             </div>
             <div class="l-hero-in">
-                <!-- Judul sudah ada di gambar (wordmark). h1 ini disembunyikan secara visual, dan baru tampil bila hero.jpg gagal dimuat. -->
+    
                 <h1>Laporkan masalah di sekitarmu. Pantau sampai beres.</h1>
                 <p>Kirim laporan dengan foto, dapat nomor tiket, lalu pantau sampai selesai.</p>
                 <div class="l-hero-cta">
@@ -50,7 +49,6 @@
             </div>
         </section>
 
-        <!-- LAYANAN -->
         <section class="l-sec l-svc-sec" id="layanan">
             <div class="l-wrap">
                 <div class="l-head rv">
@@ -116,7 +114,6 @@
             </div>
         </section>
 
-        <!-- CARA KERJA -->
         <section class="l-sec l-track" id="cara">
             <div class="l-wrap l-track-grid">
                 <div class="l-sticky rv">
@@ -136,7 +133,6 @@
             </div>
         </section>
 
-        <!-- FAQ -->
         <section class="l-sec l-faq-sec" id="faq">
             <div class="l-wrap l-faq-grid">
                 <div class="rv">
@@ -184,7 +180,6 @@
                         <button type="button" class="tab-btn" id="tabOfficer" role="tab" onclick="switchTab('officer')">Petugas ASN</button>
                     </div>
 
-                    <!-- WARGA -->
                     <div id="citizenSection">
                         <h3>Masuk sebagai warga</h3>
                         <p class="sub">Masukkan nama dan NIK untuk membuat atau memantau laporan.</p>
@@ -210,7 +205,6 @@
                         </div>
                     </div>
 
-                    <!-- PETUGAS -->
                     <div id="officerSection" style="display: none;">
                         <h3>Masuk sebagai petugas</h3>
                         <p class="sub">Gunakan NIP dan kata sandi akun dinas.</p>
@@ -251,21 +245,18 @@
         </div>
     </footer>
 
-    <!-- auth.js menyediakan handleCitizenLogin, handleOfficerLogin, fillDemoOfficer. Setelah berhasil, pengguna dialihkan ke warga.html atau admin.html. -->
+
     <script src="auth.js"></script>
     <script>
-        /* Tombol nav: kalau sudah masuk, arahkan ke portal */
         (function () {
             const role = sessionStorage.getItem('roleUser'), cta = document.getElementById('navCta');
             if (role === 'warga') { cta.textContent = 'Ke portal'; cta.href = 'warga.html'; }
             if (role === 'petugas') { cta.textContent = 'Ke panel'; cta.href = 'admin.html'; }
         })();
 
-        /* Nav menjadi solid setelah melewati bagian atas hero */
         const nav = document.getElementById('nav');
         new IntersectionObserver(([e]) => nav.classList.toggle('solid', !e.isIntersecting)).observe(document.getElementById('navSentinel'));
 
-        /* Elemen muncul halus saat discroll */
         const rvObs = new IntersectionObserver((list) => list.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); rvObs.unobserve(e.target); } }), { threshold: 0.12 });
         document.querySelectorAll('.rv').forEach(el => rvObs.observe(el));
 
@@ -290,7 +281,6 @@
             '81': 'Maluku', '82': 'Maluku Utara', '91': 'Papua Barat', '94': 'Papua'
         };
 
-        /* Format 4 blok (3171 02 140588 0004) dan tampilkan wilayah dari 2 digit pertama */
         function formatAndDecodeNik(input) {
             const digits = input.value.replace(/\D/g, '').slice(0, 16);
             document.getElementById('nikCounter').innerText = digits.length + ' / 16';
@@ -306,7 +296,6 @@
             } else badge.style.display = 'none';
         }
 
-        /* Nama harus sama dengan akun contoh di auth.js (SEED_ACCOUNTS) */
         function fillDemoCitizen() {
             document.getElementById('citizenName').value = 'Budi Santoso';
             const nik = document.getElementById('citizenNik');
