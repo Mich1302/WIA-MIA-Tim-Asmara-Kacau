@@ -4,7 +4,7 @@ const AUTH = {
         { nip: '198204152006041003', hash: '905de95d4ce53ee46cbe27fd4f8f5e5fb53656fbd7431499b2beee415895dbb2' }
     ],
     maxTries: 5,          // salah sandi berturut-turut sebelum dikunci
-    lockMs: 60 * 1000     // lama kunci
+    lockMs: 60 * 1000     // lama kunci hhh
 };
 
 async function hashPassword(password) {
