@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,7 +18,7 @@
         <div class="nav-container">
             <a href="#" class="brand" onclick="switchView('beranda'); return false;" aria-label="PINTAR, ke beranda">
                 <img class="brand-logo" src="PINTAR_LOGO.png" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'brand-fallback', textContent: 'P'}))">
-                <span class="brand-name">PINTAR</span>
+                <img class="brand-logo" src="PINTAR_TXT.png" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'brand-fallback', textContent: 'P'}))">
             </a>
 
             <nav aria-label="Menu portal warga">
@@ -24,6 +26,7 @@
                     <li><a href="#" class="nav-link active" data-target="beranda" onclick="switchView('beranda'); return false;"><i class="ph ph-squares-four"></i><span>Beranda</span></a></li>
                     <li><a href="#" class="nav-link" data-target="layanan" onclick="switchView('layanan'); return false;"><i class="ph ph-megaphone"></i><span>Buat Pengaduan</span></a></li>
                     <li><a href="#" class="nav-link" data-target="lacak" onclick="switchView('lacak'); return false;"><i class="ph ph-ticket"></i><span>Lacak Tiket</span></a></li>
+                    <li><a href="#" class="nav-link" data-target="news" onclick="switchView('news'); return false;"><i class="ph ph-newspaper"></i><span>Informasi Publik</span></a></li>
                 </ul>
             </nav>
 
@@ -103,6 +106,26 @@
                 </div>
             </div>
         </section>
+
+        <!-- INFORMASI PUBLIK (NEWS) -->
+        <section id="view-news" class="view-section">
+            <div class="container">
+                <div class="news-header-bar">
+                    <div>
+                        <h2>Informasi Publik &amp; Perkembangan</h2>
+                        <p style="color: var(--ink-2); margin-top: 4px;">Pantau tindak lanjut laporan warga dan penyelesaian fasilitas publik terkini.</p>
+                    </div>
+                    <div class="news-filters" id="newsFilterButtons">
+                        <button type="button" class="news-filter-btn active" data-cat="all" onclick="filterNews('all')">Semua</button>
+                        <button type="button" class="news-filter-btn" data-cat="Fasilitas Umum" onclick="filterNews('Fasilitas Umum')">Fasilitas Selesai</button>
+                        <button type="button" class="news-filter-btn" data-cat="Bantuan Sosial" onclick="filterNews('Bantuan Sosial')">Bansos</button>
+                        <button type="button" class="news-filter-btn" data-cat="Pengumuman" onclick="filterNews('Pengumuman')">Pengumuman</button>
+                    </div>
+                </div>
+
+                <div class="news-grid" id="newsGridList"></div>
+            </div>
+        </section>
     </main>
 
     <footer class="foot">PINTAR, portal layanan publik. Seluruh data di versi ini adalah data contoh.</footer>
@@ -120,26 +143,136 @@
                     <div class="form-group"><label for="formName">Nama pemohon</label><input type="text" id="formName" class="form-control" readonly></div>
                     <div class="form-group"><label for="formNik">NIK</label><input type="text" id="formNik" class="form-control" readonly></div>
                 </div>
+
+                <!-- Field Dinamis: Fasilitas Umum (PGD) -->
+                <div id="fields-PGD" class="category-fields">
+                    <div class="two-fields">
+                        <div class="form-group">
+                            <label for="formFacilityName">Nama fasilitas / objek</label>
+                            <input type="text" id="formFacilityName" class="form-control" placeholder="Contoh: Lampu PJU, Trotoar Halte, dsb.">
+                            <p class="field-error" id="errFacilityName"></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="formDamageType">Jenis permasalahan</label>
+                            <select id="formDamageType" class="form-control">
+                                <option value="Jalan / Trotoar Rusak">Jalan / Trotoar Rusak</option>
+                                <option value="Lampu Jalan Padam">Lampu Jalan Padam</option>
+                                <option value="Saluran Air / Drainase Tersumbat">Saluran Air Tersumbat</option>
+                                <option value="Fasilitas Taman / Halte Rusak">Fasilitas Taman / Halte Rusak</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Map Picker Interaktif -->
+                    <div class="map-picker-container">
+                        <label>Titik lokasi di peta (klik peta untuk menandai)</label>
+                        <div id="reportMap" class="map-canvas"></div>
+                        <div class="map-controls-row">
+                            <span class="map-loc-info" id="mapCoordsText">Koordinat belum dipilih</span>
+                            <button type="button" class="btn-map-gps" onclick="getCurrentGpsLocation()"><i class="ph ph-crosshair"></i> Titik Saya (GPS)</button>
+                        </div>
+                        <input type="hidden" id="formLat">
+                        <input type="hidden" id="formLng">
+                    </div>
+                </div>
+
+                <!-- Field Dinamis: Bansos (BNS) -->
+                <div id="fields-BNS" class="category-fields" hidden>
+                    <div class="two-fields">
+                        <div class="form-group">
+                            <label for="formBansosProgram">Program bantuan sosial</label>
+                            <select id="formBansosProgram" class="form-control">
+                                <option value="PKH (Program Keluarga Harapan)">PKH (Program Keluarga Harapan)</option>
+                                <option value="BPNT (Bantuan Pangan Non-Tunai)">BPNT (Bantuan Pangan Non-Tunai)</option>
+                                <option value="BLT Daerah / Kemensos">BLT Daerah / Kemensos</option>
+                                <option value="Bansos Lansia / Disabilitas">Bansos Lansia / Disabilitas</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="formBansosIssue">Jenis kendala</label>
+                            <select id="formBansosIssue" class="form-control">
+                                <option value="Salah Sasaran">Salah Sasaran / Tidak Tepat</option>
+                                <option value="Belum Pernah Menerima (Layak)">Belum Pernah Menerima (Layak Bantu)</option>
+                                <option value="Bantuan Terhenti Tanpa Alasan">Bantuan Terhenti Tanpa Alasan</option>
+                                <option value="Data Ganda / Data Tidak Valid">Data Ganda / Data Tidak Valid</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="formFamilyHead">Nama kepala keluarga / penerima terkait</label>
+                        <input type="text" id="formFamilyHead" class="form-control" placeholder="Nama lengkap kepala keluarga">
+                        <p class="field-error" id="errFamilyHead"></p>
+                    </div>
+                </div>
+
+                <!-- Field Dinamis: Perizinan (PRZ) -->
+                <div id="fields-PRZ" class="category-fields" hidden>
+                    <div class="form-group">
+                        <label for="formDocType">Jenis dokumen / perizinan</label>
+                        <select id="formDocType" class="form-control">
+                            <option value="Surat Keterangan Domisili">Surat Keterangan Domisili</option>
+                            <option value="Surat Pengantar Nikah / Keterangan Belum Menikah">Surat Pengantar Nikah</option>
+                            <option value="Surat Keterangan Usaha (SKU)">Surat Keterangan Usaha (SKU)</option>
+                            <option value="Surat Keterangan Tidak Mampu (SKTM)">Surat Keterangan Tidak Mampu (SKTM)</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label for="formLocation">Lokasi / alamat kejadian</label>
-                    <input type="text" id="formLocation" class="form-control" placeholder="Contoh: Jl. Sudirman No. 45, depan minimarket">
+                    <label for="formLocation" id="labelLocation">Lokasi / alamat kejadian</label>
+                    <input type="text" id="formLocation" class="form-control" placeholder="Contoh: Jl. Sudirman No. 45, depan halte">
                     <p class="field-error" id="errLocation"></p>
                 </div>
+
                 <div class="form-group">
-                    <label for="formDesc">Detail laporan</label>
+                    <label for="formDesc" id="labelDesc">Detail laporan</label>
                     <textarea id="formDesc" class="form-control" rows="3" placeholder="Jelaskan apa yang terjadi dan sejak kapan"></textarea>
                     <p class="field-error" id="errDesc"></p>
                 </div>
+
+                <!-- Upload Foto & Kamera Langsung dengan Stamp Metadata Overlay -->
                 <div class="form-group">
-                    <label for="formFile">Foto bukti (opsional)</label>
-                    <label class="drop" for="formFile">
-                        <i class="ph ph-camera"></i>
-                        <span id="dropText">Ketuk untuk memilih foto JPG/PNG, maksimal 4 MB</span>
-                        <img id="dropPreview" alt="Pratinjau foto" hidden>
-                    </label>
-                    <input type="file" id="formFile" class="sr" accept="image/png,image/jpeg" onchange="updateDrop()">
+                    <label>Dokumentasi foto bukti (opsional)</label>
+                    <div class="media-tabs" role="tablist">
+                        <button type="button" class="media-tab-btn active" id="tabUploadBtn" onclick="switchMediaMode('upload')"><i class="ph ph-upload-simple"></i> Unggah File</button>
+                        <button type="button" class="media-tab-btn" id="tabCameraBtn" onclick="switchMediaMode('camera')"><i class="ph ph-camera"></i> Kamera Langsung</button>
+                    </div>
+
+                    <!-- Panel Upload File Explorer -->
+                    <div id="mediaUploadPanel">
+                        <label class="drop" for="formFile">
+                            <i class="ph ph-image"></i>
+                            <span id="dropText">Ketuk untuk memilih foto JPG/PNG dari perangkat</span>
+                        </label>
+                        <input type="file" id="formFile" class="sr" accept="image/png,image/jpeg" onchange="onFileSelected(event)">
+                    </div>
+
+                    <!-- Panel Kamera Langsung -->
+                    <div id="mediaCameraPanel" hidden>
+                        <div class="camera-box">
+                            <video id="cameraVideo" class="camera-video" autoplay playsinline muted></video>
+                            <div class="camera-actions">
+                                <button type="button" class="btn-snap" onclick="captureCameraPhoto()"><i class="ph ph-aperture"></i> Jepret Foto</button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="stopCameraStream()"><i class="ph ph-stop"></i> Matikan Kamera</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Foto Terpilih & Watermark Overlay Stamp -->
+                    <div id="mediaPreviewPanel" class="photo-preview-wrap" hidden>
+                        <img id="mediaPreviewImg" class="photo-preview-img" alt="Pratinjau Foto">
+                        <div class="photo-preview-actions">
+                            <span class="meta-chip" id="mediaMetaText"><i class="ph ph-clock"></i> Timestamp disematkan</span>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="clearSelectedPhoto()"><i class="ph ph-trash"></i> Hapus / Ganti</button>
+                        </div>
+                    </div>
                     <p class="field-error" id="errFile"></p>
                 </div>
+
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
                     <button type="submit" class="btn btn-primary" id="submitBtn">Kirim pengajuan</button>
@@ -148,17 +281,82 @@
         </div>
     </div>
 
+    <!-- MODAL KONFIRMASI PEMBATALAN TIKET -->
+    <div class="modal-overlay" id="cancelTicketModal">
+        <div class="modal-box narrow" role="dialog" aria-modal="true" aria-labelledby="cancelModalTitle">
+            <div class="modal-header">
+                <h3 id="cancelModalTitle">Batalkan Laporan</h3>
+                <button class="close-btn" onclick="closeCancelModal()" aria-label="Tutup"><i class="ph ph-x"></i></button>
+            </div>
+            <div>
+                <p class="clear-info" id="cancelTicketDesc">Apakah Anda yakin ingin membatalkan laporan ini?</p>
+                <div class="form-group">
+                    <label for="cancelReasonInput">Alasan pembatalan (opsional)</label>
+                    <textarea id="cancelReasonInput" class="form-control" rows="2" placeholder="Contoh: Sudah diperbaiki swadaya warga / salah input"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeCancelModal()">Kembali</button>
+                    <button type="button" class="btn btn-bad" onclick="confirmCancelTicket()">Ya, Batalkan Laporan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL BERITA / INFORMASI PUBLIK -->
+    <div class="modal-overlay" id="newsDetailModal" onclick="if (event.target === this) closeNewsDetailModal()">
+        <div class="modal-box news-modal-box" role="dialog" aria-modal="true" aria-labelledby="newsDetailTitle">
+            <div class="modal-header">
+                <div style="min-width: 0;">
+                    <span class="chip" id="newsDetailCat" style="margin-bottom: 6px;">Kategori</span>
+                    <h3 id="newsDetailTitle" style="font-size: 1.25rem;">Judul Berita</h3>
+                </div>
+                <button class="close-btn" onclick="closeNewsDetailModal()" aria-label="Tutup"><i class="ph ph-x"></i></button>
+            </div>
+            <div>
+                <div style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-3); margin-bottom: 12px;">
+                    <span id="newsDetailDate"></span> · Diterbitkan oleh <strong id="newsDetailAuthor">Petugas</strong>
+                </div>
+
+                <!-- Komparasi Sebelum vs Sesudah -->
+                <div class="comparison-grid" id="newsComparisonGrid">
+                    <div class="comparison-item" id="newsWrapBefore">
+                        <div class="comparison-label">Sebelum Penanganan</div>
+                        <img id="newsImgBefore" src="" alt="Sebelum Penanganan">
+                    </div>
+                    <div class="comparison-item" id="newsWrapAfter">
+                        <div class="comparison-label">Setelah Selesai</div>
+                        <img id="newsImgAfter" src="" alt="Setelah Selesai">
+                    </div>
+                </div>
+
+                <div id="newsDetailDesc" style="color: var(--ink-2); line-height: 1.6; font-size: 0.92rem; margin-top: 14px;"></div>
+                <div id="newsDetailRef" style="margin-top: 16px; padding: 10px 14px; background: var(--surface-2); border-radius: var(--r); font-size: 0.84rem; color: var(--ink-2);" hidden></div>
+            </div>
+        </div>
+    </div>
+
     <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
 
     <!-- CHATBOT -->
-    <button class="chatbot-toggle" onclick="toggleChat()" aria-label="Buka asisten PINTAR"><i class="ph ph-chat-circle-text"></i></button>
+    <button class="chatbot-toggle" onclick="toggleChat()" aria-label="Buka asisten PINTAR">
+        <img src="PINTAR_BOT.png" alt="Asisten PINTAR" class="chat-toggle-avatar">
+    </button>
     <div class="chatbot-box" id="chatBox">
         <div class="chat-header">
-            <div><strong>Asisten PINTAR</strong><small>Jawaban otomatis, bukan petugas</small></div>
+            <div class="chat-header-info">
+                <img src="PINTAR_BOT.png" alt="Maskot PINTAR" class="chat-header-avatar">
+                <div>
+                    <strong>Asisten PINTAR</strong>
+                    <small><span class="online-indicator"></span> Siap melayani warga</small>
+                </div>
+            </div>
             <button class="close-btn light" onclick="toggleChat()" aria-label="Tutup chat"><i class="ph ph-x"></i></button>
         </div>
         <div class="chat-body" id="chatBody" role="log" aria-live="polite">
-            <div class="chat-msg bot" id="botGreeting">Halo! Ada yang bisa saya bantu?</div>
+            <div class="chat-row bot">
+                <img src="PINTAR_BOT.png" alt="Bot" class="chat-avatar-bot">
+                <div class="chat-msg bot" id="botGreeting">Halo! Ada yang bisa saya bantu?</div>
+            </div>
         </div>
         <div class="chat-quick" id="chatQuick"></div>
         <div class="chat-footer">

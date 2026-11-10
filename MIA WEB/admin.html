@@ -31,33 +31,75 @@
     </header>
 
     <main class="adm-main">
-        <div class="adm-head">
-            <h1 class="adm-h1">Antrean tiket</h1>
-            <p class="adm-lead" id="admLead"></p>
+        <div class="adm-nav-tabs">
+            <button type="button" class="adm-nav-tab active" id="tabAdmTicketsBtn" onclick="switchAdminTab('tickets')"><i class="ph ph-ticket"></i> Antrean Tiket Warga</button>
+            <button type="button" class="adm-nav-tab" id="tabAdmNewsBtn" onclick="switchAdminTab('news')"><i class="ph ph-newspaper"></i> Kelola Informasi Publik</button>
         </div>
 
-        <div class="adm-filters" id="admFilters" role="group" aria-label="Filter status">
-            <button type="button" class="adm-filter active" data-filter="all" onclick="setAdminFilter('all')">Semua <span class="cnt" id="cntAll">0</span></button>
-            <button type="button" class="adm-filter" data-filter="Baru Diterima" onclick="setAdminFilter('Baru Diterima')">Baru <span class="cnt" id="cntNew">0</span></button>
-            <button type="button" class="adm-filter" data-filter="Sedang Diproses" onclick="setAdminFilter('Sedang Diproses')">Diproses <span class="cnt" id="cntRun">0</span></button>
-            <button type="button" class="adm-filter" data-filter="Selesai" onclick="setAdminFilter('Selesai')">Selesai <span class="cnt" id="cntDone">0</span></button>
-            <button type="button" class="adm-filter" data-filter="Ditolak" onclick="setAdminFilter('Ditolak')">Ditolak <span class="cnt" id="cntBad">0</span></button>
+        <!-- TAB 1: ANTREAN TIKET -->
+        <div id="admSectionTickets">
+            <div class="adm-head" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <h1 class="adm-h1">Antrean tiket</h1>
+                    <p class="adm-lead" id="admLead"></p>
+                </div>
+                <div class="adm-ikm-box" id="ikmBox" title="Indeks Kepuasan Masyarakat berdasarkan partisipasi ulasan warga">
+                    <i class="ph ph-star-fill" style="color:#f59e0b;"></i>
+                    <span>IKM Warga: <strong id="ikmScore">5.0 / 5.0</strong> (<span id="ikmCount">0 ulasan</span>)</span>
+                </div>
+            </div>
+
+            <div class="adm-filters" id="admFilters" role="group" aria-label="Filter status">
+                <button type="button" class="adm-filter active" data-filter="all" onclick="setAdminFilter('all')">Semua <span class="cnt" id="cntAll">0</span></button>
+                <button type="button" class="adm-filter" data-filter="Baru Diterima" onclick="setAdminFilter('Baru Diterima')">Baru <span class="cnt" id="cntNew">0</span></button>
+                <button type="button" class="adm-filter" data-filter="Sedang Diproses" onclick="setAdminFilter('Sedang Diproses')">Diproses <span class="cnt" id="cntRun">0</span></button>
+                <button type="button" class="adm-filter" data-filter="Selesai" onclick="setAdminFilter('Selesai')">Selesai <span class="cnt" id="cntDone">0</span></button>
+                <button type="button" class="adm-filter" data-filter="Ditolak" onclick="setAdminFilter('Ditolak')">Ditolak <span class="cnt" id="cntBad">0</span></button>
+                <button type="button" class="adm-filter" data-filter="Dibatalkan" onclick="setAdminFilter('Dibatalkan')">Dibatalkan <span class="cnt" id="cntCancel">0</span></button>
+            </div>
+
+            <div class="adm-table-wrap">
+                <table class="adm-table">
+                    <thead>
+                        <tr>
+                            <th>Tiket</th>
+                            <th>Pelapor</th>
+                            <th>Laporan</th>
+                            <th>Foto</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody"></tbody>
+                </table>
+            </div>
         </div>
 
-        <div class="adm-table-wrap">
-            <table class="adm-table">
-                <thead>
-                    <tr>
-                        <th>Tiket</th>
-                        <th>Pelapor</th>
-                        <th>Laporan</th>
-                        <th>Foto</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="adminTableBody"></tbody>
-            </table>
+        <!-- TAB 2: KELOLA INFORMASI PUBLIK / NEWS -->
+        <div id="admSectionNews" hidden>
+            <div class="adm-head" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+                <div>
+                    <h1 class="adm-h1">Informasi Publik</h1>
+                    <p class="adm-lead">Publikasikan perkembangan perbaikan fasilitas dan pengumuman resmi ke seluruh warga.</p>
+                </div>
+                <button class="btn btn-primary" onclick="openCreateNewsModal()"><i class="ph ph-plus-circle"></i> Buat Berita Baru</button>
+            </div>
+
+            <div class="adm-table-wrap">
+                <table class="adm-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Judul &amp; Kategori</th>
+                            <th>Keterangan</th>
+                            <th>Dokumentasi</th>
+                            <th>Referensi Tiket</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminNewsTableBody"></tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -117,6 +159,62 @@
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeClearModal()">Batal</button>
                     <button type="submit" class="btn btn-danger">Hapus permanen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Buat / Edit Berita Publik -->
+    <div class="modal-overlay" id="newsFormModal" onclick="if (event.target === this) closeNewsFormModal()">
+        <div class="modal-box news-modal-box" role="dialog" aria-modal="true" aria-labelledby="newsFormModalTitle">
+            <div class="modal-header">
+                <h3 id="newsFormModalTitle">Buat Berita Informasi Publik</h3>
+                <button class="close-btn" onclick="closeNewsFormModal()" aria-label="Tutup"><i class="ph ph-x"></i></button>
+            </div>
+            <form onsubmit="handleSaveNews(event)" novalidate>
+                <input type="hidden" id="adminNewsId">
+                <div class="form-group">
+                    <label for="adminNewsTitle">Judul Berita</label>
+                    <input type="text" id="adminNewsTitle" class="form-control" placeholder="Contoh: Perbaikan Saluran Air Jl. Melati Telah Selesai">
+                    <p class="field-error" id="errAdminNewsTitle"></p>
+                </div>
+                <div class="two-fields">
+                    <div class="form-group">
+                        <label for="adminNewsCat">Kategori</label>
+                        <select id="adminNewsCat" class="form-control">
+                            <option value="Fasilitas Umum">Fasilitas Umum</option>
+                            <option value="Bantuan Sosial">Bantuan Sosial</option>
+                            <option value="Pelayanan Publik">Pelayanan Publik</option>
+                            <option value="Pengumuman">Pengumuman</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminNewsTicketRef">Tautkan Referensi Tiket (Opsional)</label>
+                        <select id="adminNewsTicketRef" class="form-control">
+                            <option value="">-- Tanpa Tautan Tiket --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="adminNewsDesc">Deskripsi Berita</label>
+                    <textarea id="adminNewsDesc" class="form-control" rows="4" placeholder="Jelaskan penanganan yang telah dilakukan, dampak bagi masyarakat, dan imbauan."></textarea>
+                    <p class="field-error" id="errAdminNewsDesc"></p>
+                </div>
+                <div class="two-fields">
+                    <div class="form-group">
+                        <label for="adminNewsImgBefore">Foto Sebelum (Kondisi Awal)</label>
+                        <input type="file" id="adminNewsImgBefore" class="form-control" accept="image/png,image/jpeg">
+                        <small class="adm-muted" id="adminNewsBeforeStatus">Maksimal 4 MB</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminNewsImgAfter">Foto Sesudah (Hasil Penanganan)</label>
+                        <input type="file" id="adminNewsImgAfter" class="form-control" accept="image/png,image/jpeg">
+                        <small class="adm-muted" id="adminNewsAfterStatus">Maksimal 4 MB</small>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeNewsFormModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveNews">Publikasikan Berita</button>
                 </div>
             </form>
         </div>

@@ -1,17 +1,17 @@
 const AUTH = {
-    salt: 'pintar-salt-v1',
     admins: [
-        { nip: '198204152006041003', hash: '905de95d4ce53ee46cbe27fd4f8f5e5fb53656fbd7431499b2beee415895dbb2' }
+        { nip: '198204152006041001', name: 'Admin 1', password: 'admin123' },
+        { nip: '198204152006041002', name: 'Admin 2', password: 'admin123' },
+        { nip: '198204152006041003', name: 'Admin 3', password: 'admin123' }
     ],
-    maxTries: 5,          // salah sandi berturut-turut sebelum dikunci
-    lockMs: 60 * 1000     // lama kunci hhh
+    maxTries: 10,          
+    lockMs: 30 * 1000     
 };
 
-async function hashPassword(password) {
-    const bytes = new TextEncoder().encode(AUTH.salt + ':' + password);
-    const digest = await crypto.subtle.digest('SHA-256', bytes);
-    return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
+try {
+    localStorage.removeItem('pintar_admin_lock');
+    localStorage.removeItem('pintar_admin_tries');
+} catch {}
 
 const el = id => document.getElementById(id);
 function showAuthError(sectionId, message) {
@@ -26,10 +26,40 @@ function showAuthError(sectionId, message) {
     box.textContent = message;
 }
 
-const SEED_ACCOUNTS = { '3171021405880004': { name: 'Budi Santoso' } };
+const SEED_ACCOUNTS = { '3171021405880004': { name: 'Agus Santoso' } };
+const CLOUD_ACCOUNTS_URL = 'https://kvdb.io/GHRXtWpZqV3NZBkXjvx4pn/pintar_accounts';
+
 function loadAccounts() {
     try { return Object.assign({}, SEED_ACCOUNTS, JSON.parse(localStorage.getItem('pintar_accounts')) || {}); }
     catch (err) { return Object.assign({}, SEED_ACCOUNTS); }
+}
+
+async function syncAccountsFromCloud() {
+    try {
+        const res = await fetch(`${CLOUD_ACCOUNTS_URL}?_t=${Date.now()}`);
+        if (!res.ok) return;
+        const remote = await res.json();
+        if (remote && typeof remote === 'object') {
+            const current = loadAccounts();
+            const merged = Object.assign({}, current, remote);
+            localStorage.setItem('pintar_accounts', JSON.stringify(merged));
+        }
+    } catch {}
+}
+
+async function syncAccountsToCloud(accounts) {
+    try {
+        await fetch(CLOUD_ACCOUNTS_URL, {
+            method: 'POST',
+            body: JSON.stringify(accounts),
+            headers: { 'Content-Type': 'application/json' }
+        });
+    } catch {}
+}
+
+// Sinkronkan akun saat login page dimuat
+if (typeof window !== 'undefined') {
+    syncAccountsFromCloud();
 }
 
 function handleCitizenLogin(e) {
@@ -47,6 +77,7 @@ function handleCitizenLogin(e) {
     if (!known) {
         accounts[nik] = { name: name, createdAt: Date.now() };
         localStorage.setItem('pintar_accounts', JSON.stringify(accounts));
+        syncAccountsToCloud(accounts);
     }
 
     /* Mulai bersih: hapus sisa sesi orang sebelumnya, lalu isi sesi baru */
@@ -57,11 +88,11 @@ function handleCitizenLogin(e) {
     window.location.href = 'warga.html';
 }
 
-/* ---------- Petugas: NIP + sandi (dibandingkan lewat hash) ---------- */
-async function handleOfficerLogin(e) {
+/* ---------- Petugas: NIP + kata sandi langsung (plaintext) ---------- */
+function handleOfficerLogin(e) {
     e.preventDefault();
     const nip = el('officerNip').value.replace(/\D/g, '');
-    const password = el('officerPass').value;
+    const password = el('officerPass').value.trim();
     const dept = el('officerDept').value;
 
     const lockedUntil = Number(localStorage.getItem('pintar_admin_lock') || 0);
@@ -69,24 +100,22 @@ async function handleOfficerLogin(e) {
         const sec = Math.ceil((lockedUntil - Date.now()) / 1000);
         return showAuthError('officerSection', 'Terlalu banyak percobaan. Coba lagi dalam ' + sec + ' detik.');
     }
-    if (!window.crypto || !crypto.subtle) {
-        return showAuthError('officerSection', 'Browser tidak mendukung verifikasi sandi. Buka lewat Live Server (localhost).');
-    }
 
     const account = AUTH.admins.find(a => a.nip === nip);
-    const ok = account && account.hash === await hashPassword(password);
+    const ok = account && account.password === password;
     if (!ok) {
         const tries = Number(localStorage.getItem('pintar_admin_tries') || 0) + 1;
         if (tries >= AUTH.maxTries) {
             localStorage.setItem('pintar_admin_lock', String(Date.now() + AUTH.lockMs));
             localStorage.setItem('pintar_admin_tries', '0');
-            return showAuthError('officerSection', 'Terlalu banyak percobaan. Akses dikunci selama 1 menit.');
+            return showAuthError('officerSection', 'Terlalu banyak percobaan. Akses dikunci sementara.');
         }
         localStorage.setItem('pintar_admin_tries', String(tries));
         return showAuthError('officerSection', 'NIP atau kata sandi salah. Sisa percobaan: ' + (AUTH.maxTries - tries) + '.');
     }
 
     localStorage.removeItem('pintar_admin_tries');
+    localStorage.removeItem('pintar_admin_lock');
     sessionStorage.clear();
     sessionStorage.setItem('nipOfficer', nip);
     sessionStorage.setItem('deptOfficer', dept);
@@ -94,8 +123,15 @@ async function handleOfficerLogin(e) {
     window.location.href = 'admin.html';
 }
 
-/* Tombol "Isi Akun Petugas" tidak lagi mengisi sandi, supaya sandi tidak terbaca siapa pun */
 function fillDemoOfficer() {
-    el('officerNip').value = AUTH.admins[0].nip;
-    el('officerPass').focus();
+    const nipEl = el('officerNip');
+    if (nipEl) {
+        nipEl.dataset.demoFilled = 'true';
+        nipEl.value = AUTH.admins[0].nip;
+    }
+    const passEl = el('officerPass');
+    if (passEl) {
+        passEl.dataset.demoFilled = 'true';
+        passEl.focus();
+    }
 }

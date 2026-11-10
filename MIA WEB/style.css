@@ -36,6 +36,7 @@
     --st-run-bg: #e4e3f6;   --st-run-fg: #3c3687;
     --st-ok-bg: #dcefe2;    --st-ok-fg: #17673a;
     --st-bad-bg: #f8dcdc;   --st-bad-fg: #a12a22;
+    --st-cancel-bg: #eae7ec; --st-cancel-fg: #60596c;
 
     --ok: #17673a;
     --bad: #b3261e;
@@ -205,6 +206,7 @@ i.ph { font-size: 18px; line-height: 1; flex: none; }
 .badge-status.st-proses { background: var(--st-run-bg); color: var(--st-run-fg); }
 .badge-status.st-selesai { background: var(--st-ok-bg); color: var(--st-ok-fg); }
 .badge-status.st-ditolak { background: var(--st-bad-bg); color: var(--st-bad-fg); }
+.badge-status.st-dibatalkan { background: var(--st-cancel-bg); color: var(--st-cancel-fg); }
 
 .steps { display: flex; margin: 18px 0 4px; }
 .step { flex: 1; position: relative; text-align: center; font-size: 0.7rem; line-height: 1.3; color: var(--ink-3); padding: 0 2px; }
@@ -327,21 +329,42 @@ select.form-control { appearance: auto; }
 
 /* ---------- Chatbot ---------- */
 .chatbot-toggle {
-    position: fixed; right: 24px; bottom: 24px; z-index: 1000; display: grid; place-items: center; width: 52px; height: 52px;
-    border: 0; border-radius: 50%; background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow);
+    position: fixed; right: 24px; bottom: 24px; z-index: 1000; display: grid; place-items: center; width: 56px; height: 56px;
+    border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 50%; background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow);
+    overflow: hidden; padding: 0; transition: transform 0.2s, box-shadow 0.2s;
 }
-.chatbot-toggle:hover { background: var(--accent-hover); }
-.chatbot-toggle i.ph { font-size: 24px; }
+.chatbot-toggle:hover { transform: scale(1.06); background: var(--accent-hover); box-shadow: 0 8px 24px rgba(107, 45, 134, 0.35); }
+.chat-toggle-avatar {
+    width: 100%; height: 100%; object-fit: cover; object-position: top center; transform: scale(1.15) translateY(2px);
+}
 .chatbot-box {
-    position: fixed; right: 24px; bottom: 90px; z-index: 1000; display: none; flex-direction: column; overflow: hidden;
-    width: 360px; max-width: calc(100vw - 24px); height: 480px; max-height: calc(100dvh - 120px);
-    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow);
+    position: fixed; right: 24px; bottom: 92px; z-index: 1000; display: none; flex-direction: column; overflow: hidden;
+    width: 375px; max-width: calc(100vw - 24px); height: 500px; max-height: calc(100dvh - 120px);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow);
 }
 .chatbot-box.active { display: flex; }
-.chat-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--night); color: var(--on-night); font-size: 0.9rem; }
-.chat-header small { display: block; font-size: 0.72rem; color: var(--on-night-2); }
+.chat-header {
+    display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;
+    background: var(--night); color: var(--on-night); font-size: 0.9rem;
+}
+.chat-header-info { display: flex; align-items: center; gap: 12px; }
+.chat-header-avatar {
+    width: 42px; height: 42px; border-radius: 50%; background: #2a2546; border: 2px solid var(--glow);
+    object-fit: cover; object-position: top center; flex-shrink: 0;
+}
+.chat-header small { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--on-night-2); margin-top: 1px; }
+.online-indicator {
+    width: 7px; height: 7px; background: #22c55e; border-radius: 50%; display: inline-block;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+}
 .chat-body { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 16px; overflow-y: auto; background: var(--bg); }
 .chat-msg { max-width: 85%; padding: 10px 14px; border-radius: var(--r); font-size: 0.86rem; line-height: 1.45; }
+.chat-row { display: flex; gap: 8px; align-items: flex-end; width: 100%; }
+.chat-row.user { justify-content: flex-end; }
+.chat-avatar-bot {
+    width: 28px; height: 28px; border-radius: 50%; background: #2a2546; border: 1.5px solid var(--glow);
+    object-fit: cover; object-position: top center; flex-shrink: 0; margin-bottom: 2px;
+}
 .chat-msg.bot { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); }
 .chat-msg.user { align-self: flex-end; background: var(--accent); color: var(--on-accent); }
 .chat-quick { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; border-top: 1px solid var(--line); }
@@ -422,6 +445,154 @@ select.form-control { appearance: auto; }
 .adm-btns { display: flex; gap: 6px; flex-wrap: wrap; }
 .adm-empty { padding: 36px; text-align: center; color: var(--ink-3); }
 
+/* ---------- Ekstensi Fitur PINTAR ---------- */
+/* Tombol Batalkan Laporan */
+.btn-cancel-ticket {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 40px; padding: 6px 16px; margin-top: 14px;
+    border: 1px solid var(--line-strong); border-radius: var(--r);
+    background: transparent; color: var(--bad); font-weight: 600; font-size: 0.86rem;
+    transition: background 0.15s, border-color 0.15s;
+}
+.btn-cancel-ticket:hover { background: var(--st-bad-bg); border-color: var(--bad); }
+
+/* Pilihan Sumber Foto (Upload vs Kamera) */
+.media-tabs {
+    display: flex; gap: 6px; padding: 4px; margin-bottom: 12px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r);
+}
+.media-tab-btn {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 7px 12px; border: 0; border-radius: 6px; background: transparent;
+    color: var(--ink-2); font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.media-tab-btn.active {
+    background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(26,24,50,0.1);
+}
+
+/* Kamera Live & Preview */
+.camera-box {
+    position: relative; width: 100%; border-radius: var(--r); overflow: hidden;
+    background: #0d0c15; border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center;
+}
+.camera-video { width: 100%; max-height: 240px; object-fit: cover; background: #000; }
+.camera-actions {
+    width: 100%; display: flex; justify-content: center; align-items: center; gap: 12px;
+    padding: 10px 14px; background: rgba(20, 15, 30, 0.9);
+}
+.btn-snap {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px;
+    background: #fff; color: var(--night); border: 0; border-radius: 20px; font-weight: 600; font-size: 0.85rem;
+}
+.btn-snap:hover { background: #f0ebf3; }
+
+/* Pratinjau Foto dengan Stamp Overlay */
+.photo-preview-wrap { position: relative; margin-top: 10px; border-radius: var(--r); overflow: hidden; border: 1px solid var(--line); }
+.photo-preview-img { width: 100%; max-height: 220px; object-fit: cover; display: block; }
+.photo-preview-actions {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; background: var(--surface-2); border-top: 1px solid var(--line);
+}
+.meta-chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
+    font-family: var(--font-mono); color: var(--ink-3);
+}
+
+/* Map Picker Interaktif */
+.map-picker-container { margin-bottom: 12px; }
+.map-canvas {
+    width: 100%; height: 210px; border-radius: var(--r); border: 1px solid var(--line);
+    margin-top: 6px; z-index: 10;
+}
+.map-controls-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px;
+}
+.map-loc-info { font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-3); }
+.btn-map-gps {
+    display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px;
+    background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 6px;
+    font-size: 0.78rem; font-weight: 600; color: var(--accent);
+}
+.btn-map-gps:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+/* Chatbot Typing Indicator & Mode Badge */
+.chat-typing { display: flex; align-items: center; gap: 4px; padding: 8px 12px; }
+.chat-typing span {
+    width: 6px; height: 6px; background: var(--accent); border-radius: 50%;
+    animation: typingBounce 1s infinite alternate;
+}
+.chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+.chat-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+    0% { transform: translateY(0); opacity: 0.4; }
+    100% { transform: translateY(-5px); opacity: 1; }
+}
+.chat-msg-ai-tag {
+    display: inline-block; font-size: 0.68rem; font-weight: 700; font-family: var(--font-mono);
+    color: var(--accent); background: var(--accent-soft); padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;
+}
+
+/* ---------- Halaman News / Informasi Publik ---------- */
+.news-header-bar {
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;
+    flex-wrap: wrap; margin-bottom: 24px;
+}
+.news-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.news-filter-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;
+    border: 1px solid var(--line-strong); border-radius: 20px; background: var(--surface);
+    color: var(--ink-2); font-size: 0.82rem; font-weight: 600; cursor: pointer;
+}
+.news-filter-btn.active {
+    background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+}
+.news-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;
+}
+.news-card {
+    display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--r); overflow: hidden; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.news-card:hover {
+    transform: translateY(-2px); border-color: var(--line-strong); box-shadow: 0 12px 28px rgba(26,24,50,0.09);
+}
+.news-media { position: relative; width: 100%; height: 180px; background: var(--surface-2); overflow: hidden; }
+.news-media img { width: 100%; height: 100%; object-fit: cover; }
+.news-tag {
+    position: absolute; top: 12px; left: 12px; padding: 3px 10px;
+    border-radius: 6px; background: rgba(27, 30, 59, 0.88); backdrop-filter: blur(4px);
+    color: #fff; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.news-body { display: flex; flex-direction: column; flex: 1; padding: 18px 20px 20px; }
+.news-date { font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-3); margin-bottom: 6px; }
+.news-title { font-family: var(--font-display); font-size: 1.15rem; line-height: 1.3; margin-bottom: 8px; color: var(--ink); }
+.news-desc { color: var(--ink-2); font-size: 0.86rem; line-height: 1.5; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.news-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; font-weight: 600; color: var(--accent); }
+
+/* Detail Berita Modal (Before / After Comparison) */
+.news-modal-box { width: min(640px, 94vw); max-height: 90vh; overflow-y: auto; padding: 26px; }
+.comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+@media (max-width: 580px) { .comparison-grid { grid-template-columns: 1fr; } }
+.comparison-item { border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--surface-2); }
+.comparison-label {
+    padding: 6px 12px; font-size: 0.74rem; font-weight: 700; font-family: var(--font-mono);
+    background: var(--surface); border-bottom: 1px solid var(--line); text-transform: uppercase;
+}
+.comparison-item img { width: 100%; height: 180px; object-fit: cover; display: block; }
+
+/* Admin News Management Nav */
+.adm-nav-tabs {
+    display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--line); padding-bottom: 12px;
+}
+.adm-nav-tab {
+    padding: 8px 18px; border: 1px solid var(--line-strong); border-radius: var(--r);
+    background: var(--surface); color: var(--ink-2); font-weight: 600; font-size: 0.88rem; cursor: pointer;
+}
+.adm-nav-tab.active {
+    background: var(--night); color: var(--on-night); border-color: var(--night);
+}
+
 /* ---------- Responsif ---------- */
 @media (max-width: 960px) {
     .track-grid { grid-template-columns: minmax(0, 1fr); }
@@ -472,4 +643,335 @@ select.form-control { appearance: auto; }
 
 @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* ==========================================================================
+   FITUR TRACKING INTERAKTIF, MOBILE-FIRST UX & FEEDBACK PUBLIK (JURI FEEDBACK)
+   ========================================================================== */
+
+/* 1. Progress Bar & Live Status */
+.track-progress-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.track-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.track-live-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.12);
+    color: #15803d;
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+.live-pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    animation: pulseLive 1.8s infinite;
+}
+@keyframes pulseLive {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+.track-progress-percent {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--accent);
+}
+.track-progress-track {
+    width: 100%;
+    height: 10px;
+    background: var(--surface-2);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--line);
+}
+.track-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #7c3aed, #a855f7, #6366f1);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+.track-progress-fill.active::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+    animation: shimmerProgress 2s infinite;
+}
+@keyframes shimmerProgress {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+.track-progress-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 0.76rem;
+    color: var(--ink-3);
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* Stepper Modern */
+.stepper-modern {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 18px 0;
+}
+.step-m {
+    text-align: center;
+    position: relative;
+}
+.step-m::before {
+    content: "";
+    position: absolute;
+    top: 16px;
+    left: -50%;
+    width: 100%;
+    height: 2px;
+    background: var(--line);
+    z-index: 0;
+}
+.step-m:first-child::before { display: none; }
+.step-m.done::before, .step-m.active::before { background: var(--accent); }
+.step-m-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--line-strong);
+    color: var(--ink-3);
+    display: inline-grid;
+    place-items: center;
+    font-size: 0.88rem;
+    position: relative;
+    z-index: 1;
+    transition: all 0.2s ease;
+}
+.step-m.done .step-m-icon {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+.step-m.active .step-m-icon {
+    background: #fff;
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+    font-weight: 700;
+}
+.step-m.rejected .step-m-icon {
+    background: var(--st-ditolak-fg, #ef4444);
+    border-color: #ef4444;
+    color: #fff;
+}
+.step-m-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--ink-3);
+    margin-top: 6px;
+    line-height: 1.25;
+}
+.step-m.done .step-m-label, .step-m.active .step-m-label {
+    color: var(--ink);
+}
+
+/* 2. Mobile-First Modular Cards */
+.track-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+}
+.track-card-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--ink);
+    border-bottom: 1px dashed var(--line);
+    padding-bottom: 8px;
+}
+.track-card-head i {
+    color: var(--accent);
+    font-size: 1.1rem;
+}
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 6px 0;
+    font-size: 0.86rem;
+    gap: 12px;
+}
+.info-row:not(:last-child) {
+    border-bottom: 1px solid var(--surface-2);
+}
+.info-label {
+    color: var(--ink-3);
+    flex-shrink: 0;
+    width: 95px;
+}
+.info-val {
+    color: var(--ink);
+    font-weight: 500;
+    text-align: right;
+    word-break: break-word;
+}
+.btn-copy-code {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+}
+.btn-copy-code:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+/* 3. Fitur Umpan Balik & Evaluasi Warga (Feedback) */
+.feedback-box {
+    background: linear-gradient(180deg, #faf5ff 0%, #f3e8ff 100%);
+    border: 1px solid #d8b4fe;
+    border-radius: var(--r);
+    padding: 18px;
+    margin-top: 18px;
+}
+.feedback-box h4 {
+    color: #581c87;
+    margin: 0 0 4px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.feedback-box p.sub {
+    color: #7e22ce;
+    font-size: 0.8rem;
+    margin: 0 0 12px;
+}
+.star-rating-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+.star-btn {
+    background: none;
+    border: 0;
+    font-size: 1.6rem;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: transform 0.15s ease, color 0.15s ease;
+    padding: 0;
+    line-height: 1;
+}
+.star-btn.active, .star-btn:hover {
+    color: #f59e0b;
+    transform: scale(1.15);
+}
+.feedback-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.feedback-tag-btn {
+    background: #fff;
+    border: 1px solid #d8b4fe;
+    color: #6b21a8;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+.feedback-tag-btn.active {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #fff;
+}
+.feedback-input {
+    width: 100%;
+    border: 1px solid #d8b4fe;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.84rem;
+    background: #fff;
+    color: var(--ink);
+    margin-bottom: 10px;
+    resize: vertical;
+    min-height: 60px;
+}
+.feedback-done-box {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: var(--r);
+    padding: 14px 16px;
+    margin-top: 14px;
+    color: #166534;
+}
+.feedback-done-stars {
+    color: #f59e0b;
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+/* 4. Admin IKM Badge */
+.adm-ikm-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+@media (max-width: 640px) {
+    .stepper-modern {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px 6px;
+    }
+    .step-m::before { display: none; }
+    .info-label { width: 85px; font-size: 0.8rem; }
+    .info-val { font-size: 0.82rem; }
 }
