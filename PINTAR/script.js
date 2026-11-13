@@ -3,7 +3,7 @@ const PINTAR_API_BASE_URL = (() => {
     const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
     return isLocal
         ? 'http://127.0.0.1:5000'
-        : 'https://YOUR-BACKEND-NAME.onrender.com';
+        : window.location.origin;
 })();
 
 const refreshIcons = () => {};
